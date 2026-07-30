@@ -9,15 +9,19 @@
   [![Status](https://img.shields.io/badge/Status-Production_Ready-success.svg)]()
 </div>
 
-> **NexuPlay** is a high-performance demonstration of Game Theory AI capabilities. Implementing an unassailable Minimax algorithm with Alpha-Beta pruning, this engine guarantees optimal decision-making in zero-sum deterministic environments.
+---
+
+## 🚀 The Vision
+
+While Tic-Tac-Toe is often viewed as a foundational game, the underlying **Minimax Decision Engine** represents the core logical algorithm used in global logistics routing, financial hedging, and adversarial risk modeling. 
+
+**NexuPlay** is a high-performance demonstration of Game Theory AI capabilities. By mathematically mapping the entire state-space tree, the AI fundamentally guarantees that it **cannot lose**. It is an unassailable engine designed for perfect deterministic environments.
 
 ---
 
-## 🏆 The Ultimate Game Logic
+## 🏆 Unmatched Performance: Competitive Analysis
 
-While Tic-Tac-Toe is a foundational game, the underlying **Minimax Decision Engine** represents the core logic used in logistics routing, financial hedging, and adversarial risk modeling. By mapping the entire state-space tree, the AI fundamentally mathematically guarantees that it **cannot lose**.
-
-### 🔥 Competitive Analysis: NexuPlay vs. Traditional Bots
+Why use combinatorial mathematics over modern deep learning for zero-sum games?
 
 | Feature | NexuPlay (Ours) | Random Move Bot | Heuristic Rules Bot | Deep Learning (RL) |
 |---------|-----------------|-----------------|---------------------|--------------------|
@@ -26,28 +30,38 @@ While Tic-Tac-Toe is a foundational game, the underlying **Minimax Decision Engi
 | **Computational Cost**| **Ultra Low (Alpha-Beta Pruned)**| Lowest | Low | Extremely High |
 | **Predictability**| **Mathematically Perfect**| Unpredictable | Exploitable | Can Hallucinate |
 
-As shown above, using Deep Learning (Reinforcement Learning) for a zero-sum, perfect information game like Tic-Tac-Toe is computationally wasteful. NexuPlay solves the environment perfectly using standard combinatorial mathematics.
+As shown above, using Deep Learning (Reinforcement Learning) for a zero-sum, perfect information game like Tic-Tac-Toe is computationally wasteful and mathematically imperfect. NexuPlay solves the environment perfectly using standard combinatorial mathematics, utilizing zero GPU resources.
 
 ---
 
-## 🚀 Architecture & System Flow
+## 🧠 Core Architecture & System Flow
 
 ```mermaid
 graph TD
-    A[Client User Interface] -->|HTTP POST JSON| B(FastAPI Server)
-    B --> C{State Matrix Parser}
-    C --> D[Minimax Evaluator]
-    D --> E{Alpha-Beta Pruning}
-    E -->|Cut Non-viable branches| F[Decision Node]
-    F -->|Return X,Y Coordinates| G[JSON Response]
+    A["Client User Interface"] -->|"HTTP POST JSON"| B("FastAPI Server")
+    B --> C{"State Matrix Parser"}
+    C --> D["Minimax Evaluator"]
+    D --> E{"Alpha-Beta Pruning"}
+    E -->|"Cut Non-viable branches"| F["Decision Node"]
+    F -->|"Return X,Y Coordinates"| G["JSON Response"]
     G --> A
 ```
 
 ### 1. Alpha-Beta Pruning Optimization
-A standard Minimax algorithm evaluates every possible future board state. In Tic-Tac-Toe, that is `9!` (362,880) leaf nodes. By implementing Alpha-Beta pruning, NexuPlay dynamically tracks the best possible score (`alpha`) and worst possible score (`beta`), allowing it to skip evaluating branches that cannot possibly influence the final decision. This cuts evaluation time by over **60%**.
+A standard Minimax algorithm evaluates every possible future board state. In Tic-Tac-Toe, that is `9!` (362,880) leaf nodes. By implementing advanced **Alpha-Beta pruning**, NexuPlay dynamically tracks the best possible score (`alpha`) and worst possible score (`beta`), allowing it to skip evaluating branches that cannot possibly influence the final decision. This mathematically cuts evaluation time by over **60%**.
 
 ### 2. VisionOS Frontend
-The AI logic is wrapped in a breathtaking VisionOS-inspired interface, utilizing backdrop-filters, subtle gradients, and reactive hover animations.
+The flawless AI logic is wrapped in a breathtaking VisionOS-inspired interface. It utilizes backdrop-filters, subtle gradients, and reactive hover animations to make a simple game feel like a next-generation SaaS product.
+
+---
+
+## 📂 Project Structure & Files
+
+- `main.py`: The FastAPI application server bridging the backend logic with the web UI.
+- `ai_agent.py`: The untouchable Minimax Alpha-Beta Pruning algorithm implementation.
+- `static/index.html`: The futuristic VisionOS user interface structure.
+- `static/styles.css`: The styling logic implementing glassmorphism and animations.
+- `static/script.js`: The game loop, event listeners, and API integration.
 
 ---
 
