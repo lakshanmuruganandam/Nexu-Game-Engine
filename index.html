@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>God Mode Tic-Tac-Toe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        body { background-color: #050505; color: #fff; font-family: 'Outfit', sans-serif; overflow: hidden; margin: 0; padding: 0; }
+        
+        /* Studio Dynamic Background */
+        .ambient-glow {
+            position: absolute; inset: 0; z-index: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.15) 0%, transparent 40%);
+            animation: breathe 8s infinite alternate ease-in-out;
+        }
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .glass {
+            background: rgba(20, 20, 25, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .btn-glowing {
+            position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-glowing::before {
+            content: ''; position: absolute; inset: -2px; z-index: -1;
+            background: linear-gradient(45deg, #8b5cf6, #38bdf8, #8b5cf6);
+            background-size: 200% 200%;
+            animation: gradient-shift 3s infinite linear;
+            opacity: 0; transition: opacity 0.3s;
+            border-radius: inherit;
+        }
+        .btn-glowing:hover::before { opacity: 1; }
+        .btn-glowing:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.4); }
+        
+        @keyframes gradient-shift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+        /* Game Board */
+        .board-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            perspective: 1000px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.02);
+            position: relative; overflow: hidden;
+        }
+        .cell:hover:not(.taken) {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateZ(10px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* X and O Animations */
+        .cell.x-mark { color: #38bdf8; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .cell.o-mark { color: #8b5cf6; text-shadow: 0 0 20px rgba(139, 92, 246, 0.5); animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .win-line {
+            animation: pulse-win 1.5s infinite alternate;
+            background: rgba(16, 185, 129, 0.15) !important;
+            border-color: #10b981 !important;
+            color: #10b981 !important;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5) !important;
+        }
+        @keyframes pulse-win {
+            0% { transform: scale(1.05); box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.2); }
+            100% { transform: scale(1.1); box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.6); }
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 16px; transition: all 0.3s;
+        }
+        .metric-card:hover { background: rgba(255,255,255,0.05); }
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="ambient-glow"></div>
+
+    <div class="z-10 w-full max-w-5xl mx-6 grid grid-cols-1 md:grid-cols-[1fr_380px] gap-8 h-[85vh]">
+        
+        <!-- Left: Game Board Area -->
+        <div class="glass rounded-3xl p-10 flex flex-col items-center justify-center relative">
+            
+            <div class="absolute top-8 left-8">
+                <div class="inline-flex items-center gap-2 bg-white/5 rounded-full px-4 py-1.5 border border-white/10">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs font-semibold tracking-widest text-emerald-400 uppercase">Minimax AI Active</span>
+                </div>
+            </div>
+
+            <div class="w-full max-w-[400px]">
+                <div class="board-grid" id="board">
+                    <!-- 9 cells generated by JS -->
+                </div>
+            </div>
+
+            <div id="status-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+                <h2 id="status-text" class="text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">You Win!</h2>
+                <button onclick="resetGame()" class="btn-glowing bg-white/10 text-white px-8 py-4 rounded-xl font-semibold tracking-wide flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    INITIALIZE NEW MATCH
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Control Panel / Telemetry -->
+        <div class="glass rounded-3xl p-8 flex flex-col">
+            <h1 class="text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Nexus Tic-Tac-Toe</h1>
+            <p class="text-sm text-gray-400 mb-8">Agent-native Minimax with Transposition Tables</p>
+
+            <div class="mb-8">
+                <h3 class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-4">Difficulty Vector</h3>
+                <div class="flex flex-col gap-3">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="radio" name="difficulty" value="easy" class="hidden">
+                        <div class="w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center group-hover:border-white transition-colors difficulty-radio">
+                            <div class="w-3 h-3 rounded-full bg-white opacity-0 transition-opacity"></div>
+                        </div>
+                        <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Novice (Randomized)</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="radio" name="difficulty" value="medium" class="hidden">
+                        <div class="w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center group-hover:border-white transition-colors difficulty-radio">
+                            <div class="w-3 h-3 rounded-full bg-white opacity-0 transition-opacity"></div>
+                        </div>
+                        <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Tactical (Heuristic)</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="radio" name="difficulty" value="impossible" checked class="hidden">
+                        <div class="w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center group-hover:border-white transition-colors difficulty-radio">
+                            <div class="w-3 h-3 rounded-full bg-white opacity-0 transition-opacity"></div>
+                        </div>
+                        <span class="text-sm text-purple-400 font-semibold group-hover:text-purple-300 transition-colors">God Mode (Minimax)</span>
+                    </label>
+                </div>
+            </div>
+
+            <h3 class="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-4">Live Telemetry</h3>
+            <div class="grid grid-cols-2 gap-4 mb-auto">
+                <div class="metric-card">
+                    <div class="text-xs text-gray-500 mb-1">EVAL TIME</div>
+                    <div id="eval-time" class="text-xl font-bold text-white">0.0<span class="text-sm text-gray-500 font-normal">ms</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="text-xs text-gray-500 mb-1">CACHE HITS</div>
+                    <div class="text-xl font-bold text-white">Zobrist</div>
+                </div>
+                <div class="metric-card col-span-2">
+                    <div class="text-xs text-gray-500 mb-1">CURRENT TURN</div>
+                    <div id="turn-indicator" class="text-lg font-bold text-blue-400">Player (X)</div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/10 flex justify-between items-center text-xs text-gray-500">
+                <span>UI Framework:</span>
+                <span class="text-gray-300">Nexus Glass UI</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let isPlayerTurn = true;
+        let gameActive = true;
+        let currentDifficulty = 'impossible';
+
+        const winLines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        // UI Setup
+        const boardEl = document.getElementById('board');
+        const statusOverlay = document.getElementById('status-overlay');
+        const statusText = document.getElementById('status-text');
+        const evalTime = document.getElementById('eval-time');
+        const turnIndicator = document.getElementById('turn-indicator');
+        
+        // Setup Radio Buttons
+        document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentDifficulty = e.target.value;
+                document.querySelectorAll('.difficulty-radio div').forEach(d => d.style.opacity = '0');
+                e.target.nextElementSibling.querySelector('div').style.opacity = '1';
+                resetGame();
+            });
+            if(radio.checked) {
+                radio.nextElementSibling.querySelector('div').style.opacity = '1';
+            }
+        });
+
+        // Initialize Board
+        function initBoard() {
+            boardEl.innerHTML = '';
+            for(let i=0; i<9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.onclick = () => handleCellClick(i);
+                boardEl.appendChild(cell);
+            }
+        }
+
+        async function handleCellClick(index) {
+            if(board[index] !== '' || !isPlayerTurn || !gameActive) return;
+
+            // Player Move
+            makeMove(index, 'X');
+            if(checkWinOrDraw()) return;
+
+            // AI Move
+            isPlayerTurn = false;
+            turnIndicator.textContent = "AI Calculating...";
+            turnIndicator.className = "text-lg font-bold text-purple-400 animate-pulse";
+            
+            const startTime = performance.now();
+            
+            try {
+                const response = await fetch('/api/move', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({board, difficulty: currentDifficulty})
+                });
+                const data = await response.json();
+                
+                const endTime = performance.now();
+                evalTime.innerHTML = `${(endTime - startTime).toFixed(1)}<span class="text-sm text-gray-500 font-normal">ms</span>`;
+                
+                setTimeout(() => {
+                    makeMove(data.move, 'O');
+                    isPlayerTurn = true;
+                    if(!checkWinOrDraw()) {
+                        turnIndicator.textContent = "Player (X)";
+                        turnIndicator.className = "text-lg font-bold text-blue-400";
+                    }
+                }, 300); // Artificial delay for aesthetic effect
+                
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function makeMove(index, player) {
+            board[index] = player;
+            const cells = boardEl.children;
+            cells[index].textContent = player;
+            cells[index].classList.add('taken');
+            if(player === 'X') {
+                cells[index].classList.add('x-mark');
+            } else {
+                cells[index].classList.add('o-mark');
+            }
+        }
+
+        function checkWinOrDraw() {
+            for(let line of winLines) {
+                if(board[line[0]] && board[line[0]] === board[line[1]] && board[line[0]] === board[line[2]]) {
+                    gameActive = false;
+                    highlightWin(line);
+                    showGameOver(board[line[0]] === 'X' ? 'Humanity Prevails' : 'AI Dominance');
+                    return true;
+                }
+            }
+            if(!board.includes('')) {
+                gameActive = false;
+                showGameOver('Stalemate');
+                return true;
+            }
+            return false;
+        }
+
+        function highlightWin(line) {
+            const cells = boardEl.children;
+            line.forEach(i => cells[i].classList.add('win-line'));
+        }
+
+        function showGameOver(msg) {
+            statusText.textContent = msg;
+            turnIndicator.textContent = "Match Concluded";
+            turnIndicator.className = "text-lg font-bold text-gray-400";
+            setTimeout(() => {
+                statusOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            }, 800);
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            isPlayerTurn = true;
+            gameActive = true;
+            statusOverlay.classList.add('opacity-0', 'pointer-events-none');
+            turnIndicator.textContent = "Player (X)";
+            turnIndicator.className = "text-lg font-bold text-blue-400";
+            evalTime.innerHTML = `0.0<span class="text-sm text-gray-500 font-normal">ms</span>`;
+            initBoard();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
